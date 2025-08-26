@@ -13,6 +13,7 @@ dependencies = [
   "passlib[bcrypt]>=1.7.4",
   "pyjwt>=2.10.1",
   "bcrypt==3.2.2",
+  "faker>=37.6.0",
 ]
 
 [tool.uv]
