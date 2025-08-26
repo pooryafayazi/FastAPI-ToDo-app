@@ -105,5 +105,19 @@ def private_rout(api_key = Depends(query_scheme)):
 
 
 
-# Token Authentication
+# HTTPBearer Authentication
 
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends
+from auth.token_auth import get_authenticated_user
+security = HTTPBearer()
+
+
+@app.get("/public",)
+def public_rout():
+    return {"detail": "this is public rout"}
+
+
+@app.get("/private",)
+def private_rout(user = Depends(get_authenticated_user)):
+    return {"detail": "this is public rout" , "username": user.username}
