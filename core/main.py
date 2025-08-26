@@ -171,3 +171,18 @@ def get_cookie(request: Request):
     print(request.cookies.get("test"))
     return {"message": "cookie has been set successfully."}
 """
+
+
+import time
+from fastapi import Request
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.perf_counter()
+    # print("before")
+    response = await call_next(request)
+    # print("after")
+    process_time = time.perf_counter() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
