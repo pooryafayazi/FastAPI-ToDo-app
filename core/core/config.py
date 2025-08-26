@@ -1,6 +1,6 @@
 # core/core/config.py
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Final
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
