@@ -7,7 +7,7 @@ from tasks.models import TaskModel
 from users.models import UserModel
 from fastapi import APIRouter
 from math import ceil
-from tasks.schemas import *
+from tasks.schemas import TaskCreateSchema, TaskUpdateSchema, TaskResponseSchema
 from auth.jwt_cookie_auth import get_current_user_from_cookies
 
 
@@ -28,15 +28,15 @@ def retrieve_task_list(q: str | None = Query(default=None, alias="search", descr
         # query = query.filter(TaskModel.title.ilike(f"%{q.strip()}%"))
     if completed is not None:
         query = query.filter_by(is_completed = completed)
-    
+
     total_items = query.count()
     total_pages = ceil(total_items / limit) if total_items else 1
-    
+
     # محاسبه offset از روی شماره صفحه
     offset = (page - 1) * limit
-    
+
     results = query.offset(offset).limit(limit).all()
-    
+
     # items = query.order_by(TaskModel.id.desc()).all()
     # return [{"id": e.id, "title": e.title, "description": e.description, "is_completed": e.is_completed, "create_date": e.create_date, "updated_date": e.updated_date} for e in items]
     # return query.all()
@@ -124,30 +124,30 @@ def create_task(payload: TaskCreateSchema, db: Session = Depends(get_db), user: 
 @router.put("/tasks/{task_id}", status_code=status.HTTP_200_OK)
 # def update_task_detail(task_id: int = Path(...), title: str = Body(..., embed=True, min_length=3, max_length=150), description: str = Body(..., embed=True, min_length=3, max_length=500), is_completed: bool = Body(...,), db: Session = Depends(get_db)):
 def update_task_detail(payload: TaskUpdateSchema, task_id: int = Path(..., description="ID of the task to update"), db: Session = Depends(get_db)):
-    # exp = db.query(TaskModel).filter_by(id=task_id).one_or_none()    
+    # exp = db.query(TaskModel).filter_by(id=task_id).one_or_none()
     exp = db.get(TaskModel, task_id)
     if not exp:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="object not found")
 
     # snapshot before update
     before = TaskResponseSchema.model_validate(exp, from_attributes=True).model_dump()
-    
+
     '''
     exp.title = payload.title.strip()
     exp.description = payload.description.strip()
     exp.is_completed = payload.is_completed
     '''
-    
+
     # for field, value in payload.dict(exclude_unset=True).items():
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(exp, field, value)
-    
+
     db.commit()
     db.refresh(exp)
-    
+
     # after update
     after = TaskResponseSchema.model_validate(exp, from_attributes=True).model_dump()
-    
+
     # return {"detail": "task updated", "task": {"id": exp.id, "description": exp.description, "amount": exp.amount}}
     # return {"detail": "task updated", "task": exp}
     return {"detail": f"task {task_id} updated", "before": before, "after": after}

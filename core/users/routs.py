@@ -6,7 +6,7 @@ from core.db import get_db
 from users.models import UserModel, TokenModel
 from fastapi import APIRouter
 from math import ceil
-from users.schemas import *
+from users.schemas import UserLoginSchema, UserRegisterSchema, UserRefreshTokenSchema
 import secrets
 from sqlalchemy import desc
 
@@ -26,19 +26,19 @@ def user_login(payload: UserLoginSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="username doesnt exists!")
     if not user_obj.verify_password(payload.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="password is invalid!")
-    
+
     token_obj = (db.query(TokenModel)
         .filter(TokenModel.user_id == user_obj.id)
         .order_by(desc(TokenModel.create_date))
         .first())
-    
+
     if token_obj and not token_obj.is_expired():
         return JSONResponse(content={"detail": "logged in succesfully", "token": token_obj.token})
-    
+
     if token_obj:
         db.delete(token_obj)
         db.commit()
-        
+
     token_obj = TokenModel(user_id=user_obj.id, token = generate_token())
     db.add(token_obj)
     db.commit()

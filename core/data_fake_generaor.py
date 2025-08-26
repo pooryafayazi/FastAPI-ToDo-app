@@ -34,7 +34,7 @@ def seed_tasks(db, user, count: int = 10):
     print(f"✅ Added {count} tasks for user id {user.id}")
 
 
-""" 
+"""
 def main():
     db = SessionLocal()
     try:
