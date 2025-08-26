@@ -43,9 +43,9 @@ app.include_router(users_router, prefix="/api/v1")
 
 
 
-
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from typing import Annotated
+# Basic Authentication
+"""
+from fastapi.security import HTTPBasic
 from fastapi import Depends
 from auth.basic_auth import get_authenticated_user
 
@@ -61,3 +61,49 @@ def public_rout():
 def private_rout(user: UserModel = Depends(get_authenticated_user)):
     print(user)
     return {"detail": "this is private rout"}
+"""
+
+
+# APIKeyHeader
+"""
+from fastapi.security import APIKeyHeader
+from fastapi import Depends
+
+header_scheme = APIKeyHeader(name="x-key")
+
+@app.get("/public",)
+def public_rout():
+    return {"detail": "this is public rout"}
+
+
+@app.get("/private",)
+def private_rout(api_key = Depends(header_scheme)):
+    print(api_key)
+    return {"detail": "this is private rout"}
+"""
+
+
+# APIKeyQuery
+"""
+from fastapi import Depends
+from fastapi.security import APIKeyQuery
+
+
+query_scheme = APIKeyQuery(name="api_key")
+
+
+@app.get("/public",)
+def public_rout():
+    return {"detail": "this is public rout"}
+
+
+@app.get("/private",)
+def private_rout(api_key = Depends(query_scheme)):
+    print(api_key)
+    return {"detail": "this is private rout"}
+"""
+
+
+
+# Token Authentication
+
