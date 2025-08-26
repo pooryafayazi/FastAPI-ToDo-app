@@ -4,8 +4,9 @@ from users.models import UserModel, TokenModel
 from core.db import get_db
 from sqlalchemy.orm import Session
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-security = HTTPBearer()
 
+
+security = HTTPBearer()
 
 
 def get_authenticated_user(
