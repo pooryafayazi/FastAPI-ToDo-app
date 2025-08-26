@@ -4,6 +4,9 @@ from contextlib import asynccontextmanager
 from tasks.routs import router as tasks_router
 from users.routs import router as users_router
 from users.models import UserModel
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,7 +44,17 @@ app = FastAPI(
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 
+origins = [
+    "http://127.0.0.1:5500",
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Basic Authentication
 """
