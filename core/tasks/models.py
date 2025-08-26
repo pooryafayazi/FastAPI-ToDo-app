@@ -1,4 +1,4 @@
-# core/core/models.py
+# core/tasks/models.py
 from sqlalchemy import Column, Integer, String, Text, Boolean, func, DateTime, ForeignKey
 from core.db import Base
 from sqlalchemy.orm import relationship

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from tasks.routs import router as tasks_router
 from users.routs import router as users_router
-
+from users.models import UserModel
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,3 +41,23 @@ app = FastAPI(
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 
+
+
+
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from typing import Annotated
+from fastapi import Depends
+from auth.basic_auth import get_authenticated_user
+
+
+security = HTTPBasic()
+
+@app.get("/public",)
+def public_rout():
+    return {"detail": "this is public rout"}
+
+
+@app.get("/private",)
+def private_rout(user: UserModel = Depends(get_authenticated_user)):
+    print(user)
+    return {"detail": "this is private rout"}
