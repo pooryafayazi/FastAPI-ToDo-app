@@ -7,23 +7,14 @@ from users.models import UserModel
 from fastapi.middleware.cors import CORSMiddleware
 
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application Startup")
     yield
     print("Application Shutdown")
-    
-tags_metadata = [
-    {
-        "name": "tasks",
-        "descriptions" : "Operations related to task management",
-        "externalDocs" : {
-            "description" : "More about tasks",
-            "url" : "http://127.0.0.1:8000/docs/tasks"
-        }
-    }
-]
+
+
+tags_metadata = [{"name": "tasks", "descriptions": "Operations related to task management", "externalDocs": {"description": "More about tasks", "url": "http://127.0.0.1:8000/docs/tasks"}}]
 
 
 app = FastAPI(
@@ -39,7 +30,9 @@ app = FastAPI(
     license_info={
         "name": "MIT",
     },
-    lifespan=lifespan, openapi_tags=tags_metadata)
+    lifespan=lifespan,
+    openapi_tags=tags_metadata,
+)
 
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
@@ -117,7 +110,6 @@ def private_rout(api_key = Depends(query_scheme)):
 """
 
 
-
 # HTTPBearer Authentication
 """
 from fastapi.security import HTTPBearer
@@ -141,18 +133,22 @@ def private_rout(user = Depends(get_authenticated_user)):
 from fastapi.security import HTTPBearer
 from fastapi import Depends
 from auth.jwt_auth import get_authenticated_user
+
 security = HTTPBearer()
 
 
-@app.get("/public",)
+@app.get(
+    "/public",
+)
 def public_rout():
     return {"detail": "this is public rout"}
 
 
-@app.get("/private",)
-def private_rout(user = Depends(get_authenticated_user)):
-    return {"detail": "this is public rout" , "username": user.username}
-
+@app.get(
+    "/private",
+)
+def private_rout(user=Depends(get_authenticated_user)):
+    return {"detail": "this is public rout", "username": user.username}
 
 
 # Cookie

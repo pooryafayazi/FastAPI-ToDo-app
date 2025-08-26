@@ -51,35 +51,31 @@ def retrieve_task_list(q: str | None = Query(default=None, alias="search", descr
 """
 
 
-@router.get("/tasks",)
-def retrieve_task_list(q: str | None = Query(default=None, alias="search", description="case-insensitive match on description", max_length=50),
-                       completed : bool = Query(None, description="filter for completed"),
-                       page: int = Query(1, ge=1, description="page number"),
-                       limit: int = Query(10, le=50, description="number of items per page"),
-                       db: Session = Depends(get_db),
-                       user: UserModel = Depends(get_current_user_from_cookies),
-                       ):
+@router.get(
+    "/tasks",
+)
+def retrieve_task_list(
+    q: str | None = Query(default=None, alias="search", description="case-insensitive match on description", max_length=50),
+    completed: bool = Query(None, description="filter for completed"),
+    page: int = Query(1, ge=1, description="page number"),
+    limit: int = Query(10, le=50, description="number of items per page"),
+    db: Session = Depends(get_db),
+    user: UserModel = Depends(get_current_user_from_cookies),
+):
     query = db.query(TaskModel).filter_by(user_id=user.id)
     if q:
         query = query.filter(TaskModel.title.ilike(q.strip()))
     if completed is not None:
-        query = query.filter_by(is_completed = completed)
-    
+        query = query.filter_by(is_completed=completed)
+
     total_items = query.count()
     total_pages = ceil(total_items / limit) if total_items else 1
-    
+
     offset = (page - 1) * limit
-    
+
     results = query.offset(offset).limit(limit).all()
 
-    return {
-        "page": page,
-        "total_pages": total_pages,
-        "total_items": total_items,
-        "next_page": page + 1 if page < total_pages else None,
-        "prev_page": page - 1 if page > 1 else None,
-        "result": results
-    }
+    return {"page": page, "total_pages": total_pages, "total_items": total_items, "next_page": page + 1 if page < total_pages else None, "prev_page": page - 1 if page > 1 else None, "result": results}
 
 
 """
@@ -106,9 +102,7 @@ def retrieve_task_detail(task_id: int = Path(..., title="Task ID"), db: Session 
 
 
 @router.get("/tasks/{task_id}")
-def retrieve_task_detail(task_id: int = Path(..., title="Task ID"),
-                         db: Session = Depends(get_db),
-                         user: UserModel = Depends(get_current_user_from_cookies)):
+def retrieve_task_detail(task_id: int = Path(..., title="Task ID"), db: Session = Depends(get_db), user: UserModel = Depends(get_current_user_from_cookies)):
     task_obj = db.query(TaskModel).filter_by(id=task_id, user_id=user.id).first()
     if not task_obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="object not found")
@@ -116,9 +110,7 @@ def retrieve_task_detail(task_id: int = Path(..., title="Task ID"),
 
 
 @router.post("/tasks", status_code=status.HTTP_201_CREATED)
-def create_task(payload: TaskCreateSchema,
-                db: Session = Depends(get_db),
-                user: UserModel = Depends(get_current_user_from_cookies)):
+def create_task(payload: TaskCreateSchema, db: Session = Depends(get_db), user: UserModel = Depends(get_current_user_from_cookies)):
     data = payload.model_dump()
     data.update({"user_id": user.id})
     task_obj = TaskModel(**data)
@@ -163,9 +155,9 @@ def update_task_detail(payload: TaskUpdateSchema, task_id: int = Path(..., descr
 
 
 @router.put("/tasks/{task_id}", status_code=status.HTTP_200_OK)
-def update_task_detail(payload: TaskUpdateSchema, task_id: int = Path(..., description="ID of the task to update"),
-                       db: Session = Depends(get_db),
-                       user: UserModel = Depends(get_current_user_from_cookies)):
+def update_task_detail(
+    payload: TaskUpdateSchema, task_id: int = Path(..., description="ID of the task to update"), db: Session = Depends(get_db), user: UserModel = Depends(get_current_user_from_cookies)
+):
     task_obj = db.query(TaskModel).filter_by(id=task_id, user_id=user.id).first()
     if not task_obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="object not found")
@@ -176,7 +168,7 @@ def update_task_detail(payload: TaskUpdateSchema, task_id: int = Path(..., descr
     db.commit()
     db.refresh(task_obj)
     after = TaskResponseSchema.model_validate(task_obj, from_attributes=True).model_dump()
-    
+
     return {"detail": f"task {task_id} updated", "before": before, "after": after}
 
 

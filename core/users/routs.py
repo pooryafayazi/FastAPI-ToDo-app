@@ -16,6 +16,7 @@ router = APIRouter(tags=["users"], prefix="/users")
 def generate_token(length=32):
     return secrets.token_hex(length)
 
+
 # Token Authenticated
 """
 @router.post("/login")
@@ -50,6 +51,7 @@ def user_login(payload: UserLoginSchema, db: Session = Depends(get_db)):
 
 from auth.jwt_auth import generate_access_token, generate_refresh_token, decode_refresh_token
 
+
 @router.post("/login")
 async def user_login(payload: UserLoginSchema, db: Session = Depends(get_db)):
     user_obj = db.query(UserModel).filter_by(username=payload.username.lower()).first()
@@ -57,40 +59,40 @@ async def user_login(payload: UserLoginSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="username doesnt exists!")
     if not user_obj.verify_password(payload.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="password is invalid!")
-    
+
     access_token = generate_access_token(user_obj.id)
     refresh_token = generate_refresh_token(user_obj.id)
-    
-    return JSONResponse(content={"detail" : "logged in succesfully",
-                                 "access token" : access_token,
-                                 "refresh token" : refresh_token,
-                                 })
+
+    return JSONResponse(
+        content={
+            "detail": "logged in succesfully",
+            "access token": access_token,
+            "refresh token": refresh_token,
+        }
+    )
 
 
 @router.post("/register")
 async def user_register(payload: UserRegisterSchema, db: Session = Depends(get_db)):
     if db.query(UserModel).filter_by(username=payload.username.lower()).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="username already exists!")
-        
+
     user_obj = UserModel(username=payload.username.lower())
     user_obj.set_password(payload.password)
     db.add(user_obj)
     db.commit()
     db.refresh(user_obj)
-    content={"detail": "user created",
-             "id": user_obj.id,
-             "username": user_obj.username}
+    content = {"detail": "user created", "id": user_obj.id, "username": user_obj.username}
     return JSONResponse(content=content)
 
 
 @router.post("/refresh-token")
 async def user_refresh_token(payload: UserRefreshTokenSchema, db: Session = Depends(get_db)):
     user_id = decode_refresh_token(payload.token)
-    
+
     access_token = generate_access_token(user_id)
 
-    return JSONResponse(content={"access token":access_token})
-
+    return JSONResponse(content={"access token": access_token})
 
 
 # ---------- JWT Cookie ----------

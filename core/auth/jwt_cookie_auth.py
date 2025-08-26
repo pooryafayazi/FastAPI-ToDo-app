@@ -41,18 +41,20 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         value=access_token,
         max_age=settings.ACCESS_MAX_AGE,
         httponly=True,
-        secure=False,   # True in Production
-        samesite="lax", # If you have a separate domain, "none" may be required (with secure=True)
-        path="/",)
-    
+        secure=False,  # True in Production
+        samesite="lax",  # If you have a separate domain, "none" may be required (with secure=True)
+        path="/",
+    )
+
     response.set_cookie(
         key=settings.COOKIE_REFRESH_NAME,
         value=refresh_token,
         max_age=settings.REFRESH_MAX_AGE,
         httponly=True,
-        secure=False,   # True in Production
+        secure=False,  # True in Production
         samesite="lax",
-        path="/",)
+        path="/",
+    )
 
 
 def set_access_cookie(response: Response, access_token: str) -> None:
@@ -74,7 +76,10 @@ def clear_auth_cookies(response: Response) -> None:
     response.delete_cookie(settings.COOKIE_REFRESH_NAME, path="/")
 
 
-def get_current_user_from_cookies(request: Request, db: Session = Depends(get_db),) -> UserModel:
+def get_current_user_from_cookies(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> UserModel:
     # Dependency reads the access cookie for protected routes
     token = request.cookies.get(settings.COOKIE_ACCESS_NAME)
     if not token:

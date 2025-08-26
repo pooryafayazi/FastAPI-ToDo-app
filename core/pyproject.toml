@@ -14,7 +14,24 @@ dependencies = [
   "pyjwt>=2.10.1",
   "bcrypt==3.2.2",
   "faker>=37.6.0",
+  "flake8>=7.3.0",
+  "black>=25.1.0",
 ]
 
 [tool.uv]
 dev-dependencies = ["pytest", "httpx", "ruff"]
+
+[tool.black]
+line-length = 200          # طول خط
+target-version = ['py312'] # ورژن پایتون
+skip-string-normalization = true  # "" رو به '' تبدیل نکنه
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | __pycache__
+  | build
+  | docs
+  | migrates
+)/
+'''
