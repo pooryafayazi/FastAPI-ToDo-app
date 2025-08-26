@@ -46,8 +46,9 @@ def user_login(payload: UserLoginSchema, db: Session = Depends(get_db)):
 """
 
 
+# ---------- JWT ----------
+
 from auth.jwt_auth import generate_access_token, generate_refresh_token, decode_refresh_token
-# JWT
 
 @router.post("/login")
 async def user_login(payload: UserLoginSchema, db: Session = Depends(get_db)):
@@ -89,3 +90,57 @@ async def user_refresh_token(payload: UserRefreshTokenSchema, db: Session = Depe
     access_token = generate_access_token(user_id)
 
     return JSONResponse(content={"access token":access_token})
+
+
+
+# ---------- JWT Cookie ----------
+from auth.jwt_cookie_auth import (
+    set_auth_cookies,
+    set_access_cookie,
+    clear_auth_cookies,
+    get_current_user_from_cookies,
+    get_user_id_from_refresh_cookie,
+)
+from fastapi import Request
+
+
+@router.post("/login-cookie")
+def user_login_cookie(payload: UserLoginSchema, db: Session = Depends(get_db)):
+    user_obj = db.query(UserModel).filter_by(username=payload.username.lower()).first()
+    if not user_obj:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="username doesnt exists!")
+    if not user_obj.verify_password(payload.password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="password is invalid!")
+
+    access_token = generate_access_token(user_obj.id)
+    refresh_token = generate_refresh_token(user_obj.id)
+
+    # set cookies on response
+    resp = JSONResponse(content={"detail": "logged in successfully (cookie auth)"})
+    set_auth_cookies(resp, access_token, refresh_token)
+    return resp
+
+
+@router.post("/refresh-cookie")
+def user_refresh_cookie(request: Request):
+    # Reads the refresh token from the cookie, creates a new access token if it is valid, and only updates the access cookie.
+    user_id = get_user_id_from_refresh_cookie(request)
+    new_access = generate_access_token(user_id)
+
+    resp = JSONResponse(content={"detail": "access token refreshed (cookie auth)"})
+    set_access_cookie(resp, new_access)
+    return resp
+
+
+@router.post("/logout-cookie")
+def user_logout_cookie():
+    # clear cookies (logout)
+    resp = JSONResponse(content={"detail": "logged out (cookie auth)"})
+    clear_auth_cookies(resp)
+    return resp
+
+
+# Example of a cookie-protected rout (instead of Bearer)
+@router.get("/me-cookie")
+def me_cookie(user: UserModel = Depends(get_current_user_from_cookies)):
+    return {"id": user.id, "username": user.username}

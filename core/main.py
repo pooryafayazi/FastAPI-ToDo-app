@@ -124,6 +124,7 @@ def private_rout(user = Depends(get_authenticated_user)):
 """
 
 # JWT
+
 from fastapi.security import HTTPBearer
 from fastapi import Depends
 from auth.jwt_auth import get_authenticated_user
@@ -138,3 +139,22 @@ def public_rout():
 @app.get("/private",)
 def private_rout(user = Depends(get_authenticated_user)):
     return {"detail": "this is public rout" , "username": user.username}
+
+
+
+# Cookie
+"""
+from fastapi import Response, Request
+@app.post("/set-cookie")
+def set_cookie(response: Response):
+    response.set_cookie(key="test", value="something")
+    return {"message": "cookie has been set successfully."}
+
+
+@app.get("/get-cookie")
+def get_cookie(request: Request):
+    print(request.__dict__)
+    print(request.cookies)
+    print(request.cookies.get("test"))
+    return {"message": "cookie has been set successfully."}
+"""

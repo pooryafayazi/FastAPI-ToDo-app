@@ -1,13 +1,15 @@
 # core/auth/jwt_auth.py
-from fastapi import Depends, HTTPException, status
-from users.models import UserModel, TokenModel
-from core.db import get_db
-from sqlalchemy.orm import Session
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-import jwt
 from datetime import datetime, timedelta, timezone
-from core.config import settings
+
+import jwt
 from jwt.exceptions import DecodeError, InvalidSignatureError
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
+
+from core.config import settings
+from core.db import get_db
+from users.models import UserModel
 
 
 security = HTTPBearer()
@@ -72,10 +74,8 @@ def decode_refresh_token(token):
         user_id = decoded.get("user_id", None)
         if not user_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, user_id not in the payload")
-
         if decoded.get("type") != "refresh":
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, token type not valid")
-
         if datetime.now() > datetime.fromtimestamp(decoded.get("exp", 0)):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, token expired")
 
